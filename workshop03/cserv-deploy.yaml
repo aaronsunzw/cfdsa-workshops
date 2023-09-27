@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-deploy
+  namespace: csns
+  labels:
+    app: cs
+    res: app
+    name: cs-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cs
+      res: app
+      name: csapp-po
+  template:
+    metadata:
+      name: csapp-po
+      labels:
+        app: cs
+        res: app
+        name: csapp-po
+    spec:
+      volumes:
+        - name: workspace-vol
+          persistentVolumeClaim:
+            claimName: cs-pvc
+      containers:
+        - name: code-server
+          image: linuxserver/code-server:amd64-4.17.0
+          imagePullPolicy: IfNotPresent
+          # resources:
+          #   requests:
+          #     cpu: 200m
+          #     memory: 256M
+          envFrom:
+            - configMapRef:
+                name: cs-cm
+            - secretRef:
+                name: cs-secret
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: workspace-vol
+              mountPath: /config/workspace
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: csapp-svc
+  namespace: csns
+  labels:
+    app: cs
+    res: app
+    name: csapp-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: cs
+    res: app
+    name: csapp-po
+  ports:
+    - port: 8443
+      targetPort: 8443
