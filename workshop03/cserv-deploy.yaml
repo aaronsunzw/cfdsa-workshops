@@ -35,6 +35,9 @@ spec:
           #   requests:
           #     cpu: 200m
           #     memory: 256M
+          #   limit:
+          #     cpu: 200m
+          #     memory: 256M
           envFrom:
             - configMapRef:
                 name: cs-cm
